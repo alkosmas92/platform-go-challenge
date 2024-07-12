@@ -4,16 +4,18 @@ import (
 	"encoding/json"
 	"github.com/alkosmas92/platform-go-challenge/internal/app/models"
 	"github.com/alkosmas92/platform-go-challenge/internal/app/services"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
 
 type FavoriteHandler struct {
 	Service services.FavoriteService
+	Logger  *logrus.Logger
 }
 
-func NewFavoriteHandler(service services.FavoriteService) *FavoriteHandler {
-	return &FavoriteHandler{Service: service}
+func NewFavoriteHandler(service services.FavoriteService, logger *logrus.Logger) *FavoriteHandler {
+	return &FavoriteHandler{Service: service, Logger: logger}
 }
 
 func (handler *FavoriteHandler) CreateFavorite(w http.ResponseWriter, r *http.Request) {

@@ -7,6 +7,7 @@ import (
 	mocks "github.com/alkosmas92/platform-go-challenge/internal/app/mocks"
 	"github.com/alkosmas92/platform-go-challenge/internal/app/models"
 	"github.com/golang/mock/gomock"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -18,8 +19,8 @@ func TestGetFavoriteByUserID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockFavoriteService(ctrl)
-
-	handler := handlers.NewFavoriteHandler(mockService)
+	logger := logrus.New()
+	handler := handlers.NewFavoriteHandler(mockService, logger)
 
 	// Test data
 	userID := "1"
@@ -48,8 +49,8 @@ func TestCreateFavorite(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockFavoriteService(ctrl)
-
-	handler := handlers.NewFavoriteHandler(mockService)
+	logger := logrus.New()
+	handler := handlers.NewFavoriteHandler(mockService, logger)
 
 	// Test data
 	favorite := &models.Favorite{
@@ -77,8 +78,8 @@ func TestUpdateFavorite(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockFavoriteService(ctrl)
-
-	handler := handlers.NewFavoriteHandler(mockService)
+	logger := logrus.New()
+	handler := handlers.NewFavoriteHandler(mockService, logger)
 
 	// Test data
 	favorite := &models.Favorite{
@@ -106,8 +107,8 @@ func TestDeleteFavorite(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockFavoriteService(ctrl)
-
-	handler := handlers.NewFavoriteHandler(mockService)
+	logger := logrus.New()
+	handler := handlers.NewFavoriteHandler(mockService, logger)
 
 	// Test data
 	userID := "1"
