@@ -2,7 +2,7 @@
 // Source: repository/asset_repository.go
 
 // Package mocksn is a generated GoMock package.
-package mocksn
+package mocks
 
 import (
 	context "context"
