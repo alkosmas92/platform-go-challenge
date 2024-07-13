@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the database file
-DB_FILE="favorites.db"
+DB_FILE="../../favorites.db"
 
 # Remove the existing database file if it exists
 if [ -f $DB_FILE ]; then
