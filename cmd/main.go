@@ -1,13 +1,18 @@
 package main
 
 import (
-	"database/sql"
+	"context"
+	"github.com/alkosmas92/platform-go-challenge/internal/app/database"
 	"github.com/alkosmas92/platform-go-challenge/internal/app/handlers"
+	"github.com/alkosmas92/platform-go-challenge/internal/app/middleware"
 	"github.com/alkosmas92/platform-go-challenge/internal/app/repository"
 	"github.com/alkosmas92/platform-go-challenge/internal/app/services"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/sirupsen/logrus"
+	"github.com/go-redis/redis/v8"
+	"log"
 	"net/http"
+	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -17,36 +22,41 @@ func main() {
 		FullTimestamp: true,
 	})
 	logger.SetLevel(logrus.InfoLevel)
-
-	// Set up the database connection
-	db, err := sql.Open("sqlite3", "./favorites.db")
+	// Initialize database
+	db, err := database.Initialize()
 	if err != nil {
-		logger.Fatalf("failed to open database: %v", err)
+		log.Fatalf("failed to initialize database: %v", err)
 	}
 	defer db.Close()
 
-	// Ensure the favorites table exists
-	createTable := `
-	CREATE TABLE IF NOT EXISTS favorites (
-		user_id TEXT,
-		asset_id TEXT,
-		asset_type TEXT,
-		description TEXT,
-		PRIMARY KEY (user_id, asset_id)
-	);`
+	// Set up Redis client
+	redisAddr := os.Getenv("REDIS_ADDR")
+	rdb := redis.NewClient(&redis.Options{
+		Addr: redisAddr, // use environment variable
+		DB:   0,         // use default DB
+	})
 
-	_, err = db.Exec(createTable)
+	// Check Redis connection
+	ctx := context.Background()
+	_, err = rdb.Ping(ctx).Result()
 	if err != nil {
-		logger.Fatalf("failed to create table: %v", err)
+		log.Fatalf("failed to connect to Redis: %v", err)
 	}
 
-	// Set up repository, service, and handlers
+	// Set up repositories, services, and handlers
+	userRepo := repository.NewUserRepository(db)
+	userService := services.NewUserService(userRepo)
+	userHandler := handlers.NewUserHandler(userService, logger)
+
 	favoriteRepo := repository.NewFavoriteRepository(db)
 	favoriteService := services.NewFavoriteService(favoriteRepo)
 	favoriteHandler := handlers.NewFavoriteHandler(favoriteService, logger)
 
 	// Define routes and handlers
-	http.HandleFunc("/favorites", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/register", userHandler.Register)
+	http.HandleFunc("/login", userHandler.Login)
+
+	http.Handle("/favorites", middleware.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
 			favoriteHandler.CreateFavorite(w, r)
@@ -59,11 +69,11 @@ func main() {
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	})
+	})))
 
 	// Start the server
 	logger.Info("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
-		logger.Fatalf("failed to start server: %v", err)
+		log.Fatalf("failed to start server: %v", err)
 	}
 }
