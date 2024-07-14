@@ -81,6 +81,6 @@ done
 echo "Created 10 favorites for user $USER_ID."
 
 # Save token and user ID to a file for use in the example requests script
-echo "TOKEN=\"$TOKEN\"" > auth_info.sh
+echo "TOKEN=\"$TOKEN\"" >> auth_info.sh
 echo "USER_ID=\"$USER_ID\"" >> auth_info.sh
 echo "USERNAME=\"$USERNAME\"" >> auth_info.sh
