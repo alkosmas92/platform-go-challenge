@@ -6,7 +6,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"testing"
 	"time"
 )
@@ -70,6 +69,5 @@ func TestValidateJWT_ExpiredToken(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Expected error for expired token, got nil")
 	}
-	log.Print("cl", cl, "claims ", claims)
 	assert.Equal(t, cl.UserID, claims.UserID)
 }

@@ -71,7 +71,6 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
-
 	user, err := h.Service.AuthenticateUser(ctx, credentials.Username, credentials.Password)
 	if err != nil {
 		h.Logger.Error("failed to authenticate user: ", err)
@@ -79,6 +78,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.Logger.Debug("Stored hashed password: ", user.Password)
+	h.Logger.Debug("Provided password: ", credentials.Password)
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
 	if err != nil {
 		h.Logger.Error("invalid password: ", err)
@@ -94,5 +95,5 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Logger.Info("user logged in: ", user.Username)
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	json.NewEncoder(w).Encode(map[string]string{"token": token, "user_id": user.UserID})
 }

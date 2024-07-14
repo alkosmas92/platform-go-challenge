@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Database file
-DB_FILE="../favorites.db"
+DB_FILE="./favorites.db"
 
 # Function to generate a random suffix
 generate_random_suffix() {

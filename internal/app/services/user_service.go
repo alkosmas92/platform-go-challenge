@@ -5,6 +5,8 @@ import (
 	"errors"
 	"github.com/alkosmas92/platform-go-challenge/internal/app/models"
 	"github.com/alkosmas92/platform-go-challenge/internal/app/repository"
+	"golang.org/x/crypto/bcrypt"
+	"log"
 )
 
 type UserService interface {
@@ -26,11 +28,13 @@ func (s *userService) RegisterUser(ctx context.Context, user *models.User) error
 
 func (s *userService) AuthenticateUser(ctx context.Context, username, password string) (*models.User, error) {
 	user, err := s.repo.GetUserByUsername(ctx, username)
+	log.Print("user: ", user)
 	if err != nil {
 		return nil, err
 	}
 
-	if user.Password != password {
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
 		return nil, errors.New("invalid credentials")
 	}
 

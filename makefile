@@ -1,27 +1,23 @@
-# Makefile for Go project
-
 # Variables
-DB_INIT_SCRIPT := internal/scripts/init_favorites.sh
-MAIN_GO := cmd/main.go
+MAIN=cmd/main.go
+TEST_DIR=./...
+SCRIPT_DIR=scripts
+POPULATE_DB_SCRIPT=$(SCRIPT_DIR)/populate_database.sh
 
-# Default target
-all: run
+# Targets
+all: test run populate_db
 
-initdb:
-	@echo "Running database initialization script..."
-	@chmod +x $(DB_INIT_SCRIPT)
-	@./$(DB_INIT_SCRIPT)
-
-#Run the test
 test:
-	@go test ./...
+	@echo "Running tests..."
+	@go test -v $(TEST_DIR)
 
 run:
-	@echo "Running the Go application..."
-	@go run $(MAIN_GO)
+	@echo "Running the main application..."
+	@go run $(MAIN) &
 
-# Clean up the database file
-clean:
-	@echo "Cleaning up..."
-	@rm -f scripts/favorites.db
+populate_db:
+	@echo "Populating the database..."
+	@sleep 1
+	@bash $(POPULATE_DB_SCRIPT)
 
+.PHONY: all test run populate_db
