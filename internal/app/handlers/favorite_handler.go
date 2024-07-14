@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	appContext "github.com/alkosmas92/platform-go-challenge/internal/app/context"
 	"github.com/alkosmas92/platform-go-challenge/internal/app/models"
 	"github.com/alkosmas92/platform-go-challenge/internal/app/services"
 	"github.com/sirupsen/logrus"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -37,26 +39,32 @@ func (handler *FavoriteHandler) CreateFavorite(w http.ResponseWriter, r *http.Re
 
 func (handler *FavoriteHandler) GetFavoritesByUserID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	userID := r.URL.Query().Get("user_id")
+
+	userID, ok := r.Context().Value(appContext.UserIDKey).(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
 
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit <= 0 {
-		limit = 10 // default limit
+		limit = 10
 	}
 
 	offset, err := strconv.Atoi(offsetStr)
 	if err != nil || offset < 0 {
-		offset = 0 // default offset
+		offset = 0
 	}
 
-	favorite, err := handler.Service.GetFavoritesByUserID(r.Context(), userID, offset, limit)
+	favorite, err := handler.Service.GetFavoritesByUserID(r.Context(), userID, limit, offset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	log.Print("favorite", favorite)
 	json.NewEncoder(w).Encode(favorite)
 }
 
@@ -68,7 +76,11 @@ func (handler *FavoriteHandler) UpdateFavorite(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	userID := r.URL.Query().Get("user_id")
+	userID, ok := r.Context().Value(appContext.UserIDKey).(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	assetID := r.URL.Query().Get("asset_id")
 	err = handler.Service.UpdateFavorite(r.Context(), userID, assetID, &favorite)
 	if err != nil {
@@ -79,7 +91,11 @@ func (handler *FavoriteHandler) UpdateFavorite(w http.ResponseWriter, r *http.Re
 
 func (handler *FavoriteHandler) DeleteFavorite(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	userID := r.URL.Query().Get("user_id")
+	userID, ok := r.Context().Value(appContext.UserIDKey).(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	assetID := r.URL.Query().Get("asset_id")
 
 	err := handler.Service.DeleteFavorite(r.Context(), userID, assetID)

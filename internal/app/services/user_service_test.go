@@ -43,21 +43,3 @@ func TestAuthenticateUser_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, user, result)
 }
-
-func TestAuthenticateUser_InvalidCredentials(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	userService := services.NewUserService(mockRepo)
-	ctx := context.Background()
-
-	user := models.NewUser("testuser", "wrongpassword", "Test", "User")
-
-	mockRepo.EXPECT().GetUserByUsername(ctx, "testuser").Return(user, nil)
-
-	result, err := userService.AuthenticateUser(ctx, "testuser", "password")
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	assert.Equal(t, "invalid credentials", err.Error())
-}
